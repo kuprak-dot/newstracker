@@ -1,0 +1,124 @@
+:root {
+  /* Renk Paleti */
+  --bg-main: #f8f9fa;
+  /* Çok açık grimsi beyaz - arkaplan */
+  --bg-card: #ffffff;
+  /* Saf beyaz - kartlar ve içerik alanları */
+  --text-main: #212529;
+  /* Koyu gri/siyah - ana metinler için çok okunabilir */
+  --text-secondary: #6c757d;
+  /* Orta gri - tarihler, özetler ve alt metinler */
+  --accent-red: #e63946;
+  /* Dikkat çekici kırmızı - vurgu, bildirim ve 'Takip Et' */
+  --accent-red-hover: #d62828;
+  /* Kırmızının hover hali (butonlar için) */
+  --border-color: #e9ecef;
+  /* Hafif çizgiler ve ayrımlar için gri */
+
+  /* Global Değişkenler */
+  --border-radius: 12px;
+  --transition-speed: 0.3s;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --header-height: 60px;
+  --bottom-nav-height: 65px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobil ağırlıklı genel yerleşim */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 600px;
+  /* Mobil ve küçük tablet sınırı (ortalamak için) */
+  margin: 0 auto;
+  background-color: var(--bg-main);
+  position: relative;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  /* Masaüstünde açanlar için hafif gölge sınır */
+}
+
+/* Uygulama Ana İçerik Alanı */
+main {
+  flex: 1;
+  padding: 16px;
+  padding-top: calc(var(--header-height) + 16px);
+  padding-bottom: calc(var(--bottom-nav-height) + 16px);
+  overflow-y: auto;
+}
+
+/* Genel Tipografi */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+p {
+  color: var(--text-main);
+  margin-bottom: 1rem;
+}
+
+.text-muted {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Genel Buton Stili */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all var(--transition-speed) ease;
+}
+
+button:focus {
+  outline: none;
+}
+
+.btn-primary {
+  background-color: var(--accent-red);
+  color: white;
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-red-hover);
+}
+
+/* Kırmızı Vurgular için sınıf */
+.text-accent {
+  color: var(--accent-red);
+}
+
+.bg-accent {
+  background-color: var(--accent-red);
+  color: white;
+}
