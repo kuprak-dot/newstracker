@@ -1,49 +1,43 @@
 export const fetchRssFeed = async (url, sourceName, sourceId) => {
     try {
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        // En istikrarlı RSS parse yöntemi: rss2json API
+        const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
         const response = await fetch(proxyUrl);
+
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
+
         const data = await response.json();
 
-        if (!data.contents) return [];
-
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(data.contents, "text/xml");
-
-        const parseError = xmlDoc.querySelector("parsererror");
-        if (parseError) {
-            console.error("XML parse error", parseError.textContent);
+        if (data.status !== 'ok' || !data.items) {
+            console.error(`RSS2JSON Error for ${url}:`, data.message);
             return [];
         }
 
-        const items = Array.from(xmlDoc.querySelectorAll("item"));
+        return data.items.map((item, index) => {
+            const title = item.title || "";
+            const link = item.link || "";
+            let description = item.description || item.content || "";
+            const pubDate = item.pubDate || "";
 
-        return items.map((item, index) => {
-            const getElementContent = (tagName) => {
-                const node = item.querySelector(tagName);
-                return node ? node.textContent : "";
-            };
-
-            const title = getElementContent("title") || "";
-            const link = getElementContent("link") || "";
-            let description = getElementContent("description") || "";
-            const pubDate = getElementContent("pubDate") || "";
-
-            // Temizleme işlemleri
+            // HTML etiketlerini temizleme işlemi
             const tempDiv = document.createElement("div");
             tempDiv.innerHTML = description;
             const cleanDescription = tempDiv.textContent || tempDiv.innerText || "";
 
+            const finalTitle = title.trim();
+            const finalDesc = cleanDescription.trim();
+            const finalLink = link.trim();
+
             return {
                 id: `news-${sourceId}-${index}-${Date.now()}`,
-                title: title.trim(),
-                summary: cleanDescription.trim().substring(0, 200) + (cleanDescription.length > 200 ? "..." : ""),
-                detail: cleanDescription.trim() || title.trim(),
+                title: finalTitle,
+                summary: finalDesc.substring(0, 200) + (finalDesc.length > 200 ? "..." : ""),
+                detail: finalDesc || finalTitle,
                 date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
                 source: sourceName,
-                link: link.trim(),
+                link: finalLink,
                 trackableEntities: []
             };
         });
