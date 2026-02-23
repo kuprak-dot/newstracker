@@ -1,17 +1,15 @@
-// src/pages/HomePage.jsx
 import React, { useState } from 'react';
 import NewsCard from '../components/NewsCard';
-import { newsData } from '../data/newsData';
 import { sourcesData } from '../data/sourcesData';
-import { Rss } from 'lucide-react';
+import { Rss, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export default function HomePage({ trackedEntities, handleToggleTrack, subscribedSources }) {
+export default function HomePage({ trackedEntities, handleToggleTrack, subscribedSources, allNews = [], isLoading = false }) {
     const navigate = useNavigate();
     const [activeSourceFilter, setActiveSourceFilter] = useState('all');
 
     // Abone olunan kaynaklara filtrele (veya tamnını göster)
-    const visibleNews = newsData.filter(news => {
+    const visibleNews = allNews.filter(news => {
         if (activeSourceFilter === 'all') {
             // Eğer hiç abone yoksa tümünü göster; abone varsa sadece onları
             if (subscribedSources.length === 0) return true;
@@ -68,10 +66,14 @@ export default function HomePage({ trackedEntities, handleToggleTrack, subscribe
             )}
 
             <div style={styles.newsList}>
-                {visibleNews.length > 0 ? (
+                {isLoading ? (
+                    <div style={styles.loadingState}>
+                        <Loader2 size={32} color="var(--accent-red)" />
+                        <p style={styles.loadingText}>Son dakika haberleri yükleniyor...</p>
+                    </div>
+                ) : visibleNews.length > 0 ? (
                     visibleNews.map(news => {
-                        const mainEntityId = news.trackableEntities?.[0]?.id;
-                        const isTracked = trackedEntities.some(e => e.id === mainEntityId);
+                        const isTracked = news.trackableEntities?.length > 0;
                         return (
                             <NewsCard
                                 key={news.id}
@@ -154,5 +156,18 @@ const styles = {
     emptyText: {
         color: 'var(--text-secondary)',
         fontSize: '14px',
+    },
+    loadingState: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '60px 0',
+        gap: '12px',
+    },
+    loadingText: {
+        color: 'var(--text-secondary)',
+        fontSize: '14px',
+        fontWeight: '500',
     }
 };

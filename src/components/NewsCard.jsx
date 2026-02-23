@@ -25,11 +25,21 @@ export default function NewsCard({ news, isTracked, onToggleTrack }) {
                 <button
                     style={styles.trackButton}
                     onClick={(e) => {
-                        e.stopPropagation(); // Kart tıklamasını engelle
-                        // Sadece ilk ana entity'i takip et (basitlik için)
+                        e.stopPropagation();
+                        let entityToTrack;
                         if (news.trackableEntities && news.trackableEntities.length > 0) {
-                            onToggleTrack(news.trackableEntities[0]);
+                            entityToTrack = news.trackableEntities[0];
+                        } else {
+                            // Basit bir kelime çıkarımı ile konu takibi başlat
+                            const words = news.title.split(' ').filter(w => w.length > 3);
+                            const name = words.slice(0, 2).join(' ') || "Bu Haber";
+                            entityToTrack = {
+                                id: `topic-${name.toLowerCase().replace(/[^a-z0-9ğüşöçi]/gi, '')}`,
+                                type: 'topic',
+                                name: name
+                            };
                         }
+                        onToggleTrack(entityToTrack);
                     }}
                     title={isTracked ? "Takipten Çık" : "Gelişmeleri Takip Et"}
                 >

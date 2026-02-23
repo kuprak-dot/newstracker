@@ -2,13 +2,12 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, Bookmark } from 'lucide-react';
-import { newsData } from '../data/newsData';
 
-export default function NewsDetail({ trackedEntities, handleToggleTrack }) {
+export default function NewsDetail({ trackedEntities, handleToggleTrack, allNews = [] }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const news = newsData.find(n => n.id === id);
+    const news = allNews.find(n => n.id === id);
 
     if (!news) {
         return <div style={styles.notFound}>Haber bulunamadı.</div>;
@@ -60,7 +59,12 @@ export default function NewsDetail({ trackedEntities, handleToggleTrack }) {
                 <div style={styles.content}>
                     <p style={styles.summaryLead}>{news.summary}</p>
                     <div style={styles.divider}></div>
-                    <p style={styles.detailText}>{news.detail}</p>
+                    <div style={styles.detailText} dangerouslySetInnerHTML={{ __html: news.detail }}></div>
+                    {news.link && (
+                        <a href={news.link} target="_blank" rel="noopener noreferrer" style={styles.sourceLink}>
+                            Haberin devamı için kaynağa git →
+                        </a>
+                    )}
                 </div>
             </article>
         </div>
@@ -158,5 +162,13 @@ const styles = {
     },
     detailText: {
         whiteSpace: 'pre-wrap',
+        lineHeight: '1.6',
+    },
+    sourceLink: {
+        display: 'inline-block',
+        marginTop: '20px',
+        color: 'var(--accent-red)',
+        fontWeight: 'bold',
+        textDecoration: 'none',
     }
 };

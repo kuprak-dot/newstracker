@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
@@ -7,10 +7,10 @@ import NewsDetail from './pages/NewsDetail';
 import TrackedNews from './pages/TrackedNews';
 import Notifications from './pages/Notifications';
 import SourcesPage from './pages/SourcesPage';
-import { updatesData } from './data/updatesData';
+import { sourcesData } from './data/sourcesData';
+import { fetchRssFeed } from './utils/fetchRss';
 
 function App() {
-  // State tanımlamaları
   const [trackedEntities, setTrackedEntities] = useState(() => {
     const saved = localStorage.getItem('trackedEntities');
     return saved ? JSON.parse(saved) : [];
@@ -21,28 +21,91 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [allNews, setAllNews] = useState([]);
+  const [isLoadingNews, setIsLoadingNews] = useState(true);
+
   const [activeUpdates, setActiveUpdates] = useState([]);
   const [readUpdates, setReadUpdates] = useState(() => {
     const saved = localStorage.getItem('readUpdates');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Takip edilenler değiştiğinde localStorage'a kaydet
   useEffect(() => {
     localStorage.setItem('trackedEntities', JSON.stringify(trackedEntities));
   }, [trackedEntities]);
 
-  // Abone olunan kaynakları kaydet
   useEffect(() => {
     localStorage.setItem('subscribedSources', JSON.stringify(subscribedSources));
   }, [subscribedSources]);
 
-  // Okunan bildirimleri kaydet
   useEffect(() => {
     localStorage.setItem('readUpdates', JSON.stringify(readUpdates));
   }, [readUpdates]);
 
-  // Takip/Takipten Çık mantığı
+  const fetchNews = async () => {
+    setIsLoadingNews(true);
+    try {
+      const promises = sourcesData.map(source =>
+        fetchRssFeed(source.rssUrl, source.name, source.id)
+      );
+      const results = await Promise.all(promises);
+      const combined = results.flat().sort((a, b) => new Date(b.date) - new Date(a.date));
+      setAllNews(combined);
+    } catch (error) {
+      console.error("News fetch error:", error);
+    } finally {
+      setIsLoadingNews(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNews();
+    const intervalId = setInterval(fetchNews, 5 * 60 * 1000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Update trackableEntities on news dynamically
+  const newsWithTracking = useMemo(() => {
+    return allNews.map(newsItem => {
+      const matchedEntities = trackedEntities.filter(entity => {
+        const keyword = entity.name.toLowerCase();
+        return newsItem.title.toLowerCase().includes(keyword) || newsItem.summary.toLowerCase().includes(keyword);
+      });
+      return { ...newsItem, trackableEntities: matchedEntities };
+    });
+  }, [allNews, trackedEntities]);
+
+  // Generate Notifications
+  useEffect(() => {
+    if (trackedEntities.length === 0 || allNews.length === 0) {
+      setActiveUpdates([]);
+      return;
+    }
+
+    const newUpdates = [];
+    allNews.forEach(newsItem => {
+      trackedEntities.forEach(entity => {
+        const keyword = entity.name.toLowerCase();
+        if (newsItem.title.toLowerCase().includes(keyword) || newsItem.summary.toLowerCase().includes(keyword)) {
+          newUpdates.push({
+            id: `update-${newsItem.id}-${entity.id}`,
+            entityId: entity.id,
+            title: `Takip edilen konu: ${entity.name}`,
+            updateSummary: newsItem.title,
+            updateDetail: newsItem.summary,
+            date: newsItem.date,
+            type: "new_development",
+            relatedNewsId: newsItem.id
+          });
+        }
+      });
+    });
+
+    // En son bildirimler en üstte
+    newUpdates.sort((a, b) => new Date(b.date) - new Date(a.date));
+    setActiveUpdates(newUpdates);
+  }, [allNews, trackedEntities]);
+
   const handleToggleTrack = (entity) => {
     setTrackedEntities(prev => {
       const isTracking = prev.some(e => e.id === entity.id);
@@ -54,7 +117,6 @@ function App() {
     });
   };
 
-  // Kaynak abone ol / kaldır
   const handleToggleSubscribe = (source) => {
     setSubscribedSources(prev => {
       const isSubscribed = prev.some(s => s.id === source.id);
@@ -66,24 +128,6 @@ function App() {
     });
   };
 
-  // Mock Notification Sistemi
-  useEffect(() => {
-    if (trackedEntities.length === 0) {
-      setActiveUpdates([]);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      const newUpdates = updatesData.filter(update =>
-        trackedEntities.some(entity => entity.id === update.entityId)
-      );
-      setActiveUpdates(newUpdates);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [trackedEntities]);
-
-  // Bildirim sayısı (aktif - okunanlar)
   const notificationCount = activeUpdates.filter(u => !readUpdates.includes(u.id)).length;
 
   const handleMarkAsRead = (updateId) => {
@@ -110,6 +154,8 @@ function App() {
                 trackedEntities={trackedEntities}
                 handleToggleTrack={handleToggleTrack}
                 subscribedSources={subscribedSources}
+                allNews={newsWithTracking}
+                isLoading={isLoadingNews}
               />
             }
           />
@@ -119,6 +165,7 @@ function App() {
               <NewsDetail
                 trackedEntities={trackedEntities}
                 handleToggleTrack={handleToggleTrack}
+                allNews={newsWithTracking}
               />
             }
           />
