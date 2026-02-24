@@ -1,7 +1,8 @@
 export const fetchRssFeed = async (url, sourceName, sourceId) => {
     try {
-        // En istikrarlı RSS parse yöntemi: rss2json API
-        const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
+        // Add a timestamp to bypass rss2json caching
+        const cacheBusterUrl = url.includes('?') ? `${url}&_=${Date.now()}` : `${url}?_=${Date.now()}`;
+        const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(cacheBusterUrl)}`;
         const response = await fetch(proxyUrl);
 
         if (!response.ok) {

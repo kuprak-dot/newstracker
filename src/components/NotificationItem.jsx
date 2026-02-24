@@ -37,11 +37,6 @@ export default function NotificationItem({ update, isRead, onMarkAsRead }) {
 
                 <p style={styles.summary}>{update.updateSummary}</p>
 
-                <div style={styles.oldContext}>
-                    <span style={styles.contextLabel}>Eski Durum Hatırlatması:</span>
-                    <p style={styles.contextText}>Gözaltına alınmıştı ve mahkemeye sevk edilmişti...</p>
-                </div>
-
                 <div style={styles.actionRow}>
                     <span style={styles.actionText}>Haberde Oku</span>
                     <ArrowRight size={14} color="var(--accent-red)" />
@@ -93,26 +88,6 @@ const styles = {
         color: 'var(--text-main)',
         margin: '0 0 8px 0',
         lineHeight: '1.4',
-    },
-    oldContext: {
-        backgroundColor: 'var(--bg-main)',
-        padding: '8px',
-        borderRadius: '6px',
-        marginBottom: '10px',
-    },
-    contextLabel: {
-        display: 'block',
-        fontSize: '11px',
-        color: 'var(--text-secondary)',
-        fontWeight: '600',
-        marginBottom: '2px',
-        textTransform: 'uppercase',
-    },
-    contextText: {
-        fontSize: '13px',
-        color: 'var(--text-secondary)',
-        margin: 0,
-        fontStyle: 'italic',
     },
     actionRow: {
         display: 'flex',
