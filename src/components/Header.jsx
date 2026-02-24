@@ -9,6 +9,9 @@ export default function Header({ notificationCount = 0 }) {
                 <h1 style={styles.logo}>
                     Haber<span style={{ color: 'var(--accent-red)' }}>Takip</span>
                 </h1>
+                {notificationCount > 0 && (
+                    <span style={styles.newWarningBadge}>YENİ</span>
+                )}
             </div>
             <div style={styles.actionContainer}>
                 <button style={styles.iconButton}>
@@ -48,6 +51,17 @@ const styles = {
         fontWeight: '800',
         margin: 0,
         letterSpacing: '-0.5px',
+    },
+    newWarningBadge: {
+        marginLeft: '8px',
+        backgroundColor: '#FFE5E5',
+        color: 'var(--accent-red)',
+        fontSize: '11px',
+        fontWeight: '800',
+        padding: '3px 8px',
+        borderRadius: '12px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px',
     },
     actionContainer: {
         display: 'flex',
